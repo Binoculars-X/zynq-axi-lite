@@ -1,2 +1,2 @@
 # zynq-axi-lite
-nd-to-end Zynq/ZCU102 ARM Linux to PL AXI4-Lite template.
+End-to-end Zynq/ZCU102 ARM Linux to PL AXI4-Lite template.
