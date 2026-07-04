@@ -30,7 +30,7 @@ module tb_axi_regs256;
     reg         rready;
 
     // DUT
-    axi_regs256 #(
+    axi_regs256_slave_lite_v1_0_S00_AXI #(
         .C_S_AXI_DATA_WIDTH(32),
         .C_S_AXI_ADDR_WIDTH(32)
     ) dut (
