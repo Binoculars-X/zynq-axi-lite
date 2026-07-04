@@ -2,19 +2,27 @@
 # Programs ZCU102 with the axi-test loopback bitstream via JTAG.
 # Usage: vivado.bat -mode batch -source program_axi_test.tcl
 
-set BitFile "C:/repos/_Neuro/axi-test/out/axi_test.bit"
+set BitFile  [string map {\\ /} [lindex $argv 0]]
+set JtagUrl  [lindex $argv 1]
+
+if {$BitFile eq "" || $JtagUrl eq ""} {
+    puts "ERROR: Usage: vivado -mode batch -source program_axi_test.tcl -tclargs <bit_file> <jtag_url>"
+    exit 1
+}
 
 if {![file exists $BitFile]} {
     puts "ERROR: Bitfile not found: $BitFile"
-    puts "       Run build_axi_test.ps1 first."
+    puts "       Run 2.BuildBitstream.ps1 first."
     exit 1
 }
 
 puts "INFO: Programming $BitFile..."
 
 open_hw_manager
-connect_hw_server -url localhost:3121
-open_hw_target localhost:3121/xilinx_tcf/Digilent/210308BED04A
+# Extract "host:port" from the full target URL (first segment before the first /)
+regexp {^([^/]+)} $JtagUrl -> HwServer
+connect_hw_server -url $HwServer
+open_hw_target $JtagUrl
 
 set dev [lindex [get_hw_devices] 0]
 current_hw_device $dev
