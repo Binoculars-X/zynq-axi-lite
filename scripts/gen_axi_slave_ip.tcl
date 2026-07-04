@@ -36,5 +36,4 @@ generate_peripheral -driver -bfm_example_design -debug_hw_example_design -force 
 write_peripheral $periph
 
 puts "INFO: IP generated at $OutIpDir/axi_regs256_1_0/"
-puts "INFO: HDL template : $OutIpDir/axi_regs256_1_0/hdl/"
 exit

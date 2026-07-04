@@ -8,7 +8,7 @@
 //   axi_train_regs_slave_lite_v1_0_S00_AXI.v
 // Only user logic section replaced (register file instead of transformer bridge).
 
-module axi_regs256 #(
+module axi_regs256_slave_lite_v1_0_S00_AXI #(
     parameter integer C_S_AXI_DATA_WIDTH = 32,
     parameter integer C_S_AXI_ADDR_WIDTH = 32
 )(

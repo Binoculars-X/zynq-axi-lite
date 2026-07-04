@@ -11,8 +11,9 @@ xelab.pb
 *.jou
 .Xil/
 
-# Vivado build output (ignore everything except the generated HDL template)
+# Vivado build output — all generated; run scripts 1-2 to regenerate
 out/vivado_proj/
+out/ip/
 out/*.bit
 out/*.xsa
 out/*.log
