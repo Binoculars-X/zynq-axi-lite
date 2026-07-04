@@ -9,11 +9,17 @@ xelab.pb
 *.wdb
 *.vcd
 *.jou
+*.pb
+*.backup.jou
+*.backup.log
 .Xil/
+
+# IDE state
+.vs/
 
 # Vivado build output — all generated; run scripts 1-2 to regenerate
 out/vivado_proj/
-out/ip/
+# out/ip/ is intentionally tracked — contains generated+patched IP for review
 out/*.bit
 out/*.xsa
 out/*.log
