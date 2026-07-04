@@ -218,6 +218,19 @@ The discrepancy appears during Vivado IP packaging and/or address mapping throug
 
 **`/dev/mem: Operation not permitted`** — Use `sudo busybox devmem` (available on this PetaLinux image).
 
+## Platform support
+
+The reference implementation currently targets:
+
+- Windows
+- PowerShell 7
+- Vivado
+- PetaLinux (Docker)
+
+Contributions are welcome.
+
+If you use Linux or macOS, please feel free to fork the project and submit a pull request implementing native build scripts while preserving the same reproducible workflow.
+
 **JTAG URL unknown** — Open Vivado Hardware Manager, connect to hw_server, read the target path from the device tree, or run:
 ```powershell
 & $env:VIVADO -mode tcl   # then: connect_hw_server; get_hw_targets
