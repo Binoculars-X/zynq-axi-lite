@@ -17,17 +17,25 @@
 #   axi_test.bit   -- program to ZCU102
 #   axi_test.xsa
 
-# ── Short output path to avoid Windows 260-char limit ────────────────────────
-set OutDir  "C:/repos/_Neuro/axi-test/out"
+# ── Args from 2.BuildBitstream.ps1 via -tclargs ─────────────────────────────
+set OutDir   [string map {\\ /} [lindex $argv 0]]
+set IpRepo   [string map {\\ /} [lindex $argv 1]]
+set FpgaPart [lindex $argv 2]
+set BoardPart [lindex $argv 3]
+
+if {$OutDir eq "" || $FpgaPart eq "" || $BoardPart eq ""} {
+    puts "ERROR: Usage: vivado -mode batch -source build_axi_test.tcl -tclargs <out_dir> <ip_repo> <fpga_part> <board_part>"
+    exit 1
+}
+
 set ProjDir "$OutDir/vivado_proj"
 set BdName  "axi_test_bd"
-set IpRepo  "C:/repos/_Neuro/axi-test/out/ip"
 
 file mkdir $OutDir
 
 # ── Create project ────────────────────────────────────────────────────────────
-create_project axi_test $ProjDir -part xczu9eg-ffvb1156-2-e -force
-set_property board_part xilinx.com:zcu102:3.4 [current_project]
+create_project axi_test $ProjDir -part $FpgaPart -force
+set_property board_part $BoardPart [current_project]
 
 # ── Add packaged IP repo ──────────────────────────────────────────────────────
 set_property ip_repo_paths $IpRepo [current_project]

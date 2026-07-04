@@ -451,3 +451,9 @@ FodyWeavers.xsd
 *.jou
 /petalinux-build/xilinx-zcu102-v2026.1-06092129.bsp
 /petalinux-build/petalinux-v2026.1-06061130-installer.run
+/out/petalinux-sdimage.wic
+/out/rootfs.tar.gz
+/out/BOOT.BIN
+/out/boot.scr
+/out/image.ub
+/out/ip/axi_regs256_1_0/component.xml

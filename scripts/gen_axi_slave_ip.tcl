@@ -5,11 +5,19 @@
 # Usage:
 #   vivado.bat -mode batch -source C:/repos/_Neuro/axi-test/scripts/gen_axi_slave_ip.tcl
 
-set OutIpDir "C:/repos/_Neuro/axi-test/out/ip"
+# Args passed from 1.GenerateAxiIp.ps1 via -tclargs
+set OutIpDir [string map {\\ /} [lindex $argv 0]]
+set FpgaPart [lindex $argv 1]
+
+if {$OutIpDir eq "" || $FpgaPart eq ""} {
+    puts "ERROR: Usage: vivado -mode batch -source gen_axi_slave_ip.tcl -tclargs <out_ip_dir> <fpga_part>"
+    exit 1
+}
+
 file mkdir $OutIpDir
 
 # create_peripheral requires an open project -- use in-memory (no disk project needed)
-create_project -in_memory -part xczu9eg-ffvb1156-2-e
+create_project -in_memory -part $FpgaPart
 
 # Create the peripheral definition
 create_peripheral xilinx.com user axi_regs256 1.0 -dir $OutIpDir
@@ -28,5 +36,5 @@ generate_peripheral -driver -bfm_example_design -debug_hw_example_design -force 
 write_peripheral $periph
 
 puts "INFO: IP generated at $OutIpDir/axi_regs256_1_0/"
-puts "INFO: HDL template: $OutIpDir/axi_regs256_1_0/hdl/"
+puts "INFO: HDL template : $OutIpDir/axi_regs256_1_0/hdl/"
 exit
