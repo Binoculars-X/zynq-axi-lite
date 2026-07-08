@@ -5,6 +5,11 @@ ETH / USDT / USDC (ERC-20): **`0x82Bc45B772842457C21d8fF8517DE91F74470Ec9`**
 
 # zynq-axi-lite
 
+> **Just want the IP, not the whole build pipeline?** See
+> [`ip-export/README.md`](ip-export/README.md) for a standalone,
+> hardware-verified `axi_regs256.sv` you can drop into any project without
+> running steps 0–5.
+
 ## Goal
 
 Provide a fully reproducible end-to-end reference showing how to connect Linux userspace (`/dev/mem`) running on the ARM PS to a custom AXI4-Lite peripheral in the PL using only officially supported AMD Vivado flows.
