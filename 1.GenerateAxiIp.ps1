@@ -6,22 +6,23 @@
 # Next  : customise rtl\axi_regs256_v1_0_S00_AXI.v, then run 2.BuildBitstream.ps1
 # -------------------------------------------------------
 
-if (-not $env:OUT_DIR)   { Write-Error "OUT_DIR is not set. Run:  . .\0.Setup.ps1"; exit 1 }
-if (-not $env:VIVADO)    { Write-Error "VIVADO is not set. Run:  . .\0.Setup.ps1"; exit 1 }
-if (-not $env:FPGA_PART) { Write-Error "FPGA_PART is not set. Run:  . .\0.Setup.ps1"; exit 1 }
+if (-not $env:OUT_DIR)      { Write-Error "OUT_DIR is not set. Run:  . .\0.Setup.ps1"; exit 1 }
+if (-not $env:VIVADO_IP_GEN){ Write-Error "VIVADO_IP_GEN is not set. Run:  . .\0.Setup.ps1"; exit 1 }
+if (-not $env:FPGA_PART)    { Write-Error "FPGA_PART is not set. Run:  . .\0.Setup.ps1"; exit 1 }
 
 $TclScript = "$PSScriptRoot\scripts\gen_axi_slave_ip.tcl"
 $OutIpDir  = "$env:OUT_DIR\ip"
 
-if (-not (Test-Path $env:VIVADO)) { Write-Error "Vivado not found: $env:VIVADO"; exit 1 }
+if (-not (Test-Path $env:VIVADO_IP_GEN)) { Write-Error "Vivado (IP gen) not found: $env:VIVADO_IP_GEN"; exit 1 }
 if (-not (Test-Path $TclScript))  { Write-Error "TCL script not found: $TclScript"; exit 1 }
 
 Write-Host "=== Generating AXI4-Lite slave IP template ===" -ForegroundColor Cyan
+Write-Host "  Vivado : $env:VIVADO_IP_GEN"
 Write-Host "  Part   : $env:FPGA_PART"
 Write-Host "  Output : $OutIpDir"
 
 # Pass OUT_DIR and FPGA_PART into TCL via -tclargs
-cmd /c "`"$env:VIVADO`" -mode batch -source `"$TclScript`" -tclargs `"$OutIpDir`" `"$env:FPGA_PART`""
+cmd /c "`"$env:VIVADO_IP_GEN`" -mode batch -source `"$TclScript`" -tclargs `"$OutIpDir`" `"$env:FPGA_PART`""
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Vivado failed (exit $LASTEXITCODE)" -ForegroundColor Red
@@ -52,7 +53,7 @@ if (Test-Path $XmlFile) {
 
 # 3. Replace generated slave stub with custom RTL
 $CustomRtl = "$PSScriptRoot\rtl\axi_regs256.v"
-$GenHdl    = "$HdlDir\axi_regs256_slave_lite_v1_0_S00_AXI.v"
+$GenHdl    = "$HdlDir\axi_regs256_v1_0_S00_AXI.v"
 if ((Test-Path $CustomRtl) -and (Test-Path $GenHdl)) {
     Copy-Item -Force $CustomRtl $GenHdl
     Write-Host "  Copied rtl\axi_regs256.v -> $GenHdl"

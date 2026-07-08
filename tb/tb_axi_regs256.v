@@ -30,7 +30,7 @@ module tb_axi_regs256;
     reg         rready;
 
     // DUT
-    axi_regs256_slave_lite_v1_0_S00_AXI #(
+    axi_regs256_v1_0_S00_AXI #(
         .C_S_AXI_DATA_WIDTH(32),
         .C_S_AXI_ADDR_WIDTH(32)
     ) dut (
@@ -114,40 +114,42 @@ module tb_axi_regs256;
         end
     endtask
 
-    // Task: AXI4-Lite write with AW one cycle BEFORE W (models protocol converter output)
+    // Task: AXI4-Lite write with AW asserted one cycle BEFORE W (models a
+    // real master/protocol-converter that issues address first). Per AMBA
+    // AXI4-Lite A3.3.1, a compliant slave may wait for BOTH AWVALID and
+    // WVALID before asserting either AWREADY or WREADY -- it is NOT required
+    // (and must NOT be assumed) that AWREADY fires on AWVALID alone. This
+    // task therefore holds AWVALID asserted across cycles until WVALID also
+    // arrives, then expects AWREADY/WREADY to assert together.
     task axi_write_aw_first;
         input [31:0] addr;
         input [31:0] data;
         integer timeout;
         begin
-            // Cycle 1: send AW only
+            // Cycle 1: assert AW only, hold it (do NOT wait for AWREADY yet --
+            // a compliant slave is allowed to withhold it until WVALID too)
             @(posedge clk); #1;
             awaddr  = addr;
             awvalid = 1;
             wvalid  = 0;
-
-            timeout = 0;
-            while (!awready) begin
-                @(posedge clk); #1;
-                timeout = timeout + 1;
-                if (timeout > 100) begin $display("TIMEOUT: AWREADY at addr=0x%08X", addr); $finish; end
-            end
             @(posedge clk); #1;
-            awvalid = 0;
 
-            // Cycle 2: send W only (AW already gone)
+            // Cycle 2: now also assert W -- AWVALID stays held from above
             wdata  = data;
             wstrb  = 4'hF;
             wvalid = 1;
 
+            // Wait for both AWREADY and WREADY (may assert same cycle or
+            // AWREADY may already be captured internally; either is valid)
             timeout = 0;
-            while (!wready) begin
+            while (!(awready && wready)) begin
                 @(posedge clk); #1;
                 timeout = timeout + 1;
-                if (timeout > 100) begin $display("TIMEOUT: WREADY at addr=0x%08X", addr); $finish; end
+                if (timeout > 100) begin $display("TIMEOUT: AWREADY/WREADY at addr=0x%08X", addr); $finish; end
             end
             @(posedge clk); #1;
-            wvalid = 0;
+            awvalid = 0;
+            wvalid  = 0;
 
             // Wait for BVALID
             timeout = 0;

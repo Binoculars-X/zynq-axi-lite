@@ -25,13 +25,22 @@ $SimName = "${Top}_sim"
 
 Push-Location $PSScriptRoot
 
+# Always start from a clean sim library -- otherwise a failed xelab can
+# silently fall through to re-running an OLD snapshot left over from a
+# previous successful build, producing a false PASS.
+if (Test-Path "$PSScriptRoot\xsim.dir") {
+    Remove-Item -Recurse -Force "$PSScriptRoot\xsim.dir"
+}
+
 Write-Host "=== Compiling RTL + TB ===" -ForegroundColor Cyan
-& $Xvlog $RtlFile $TbFile
-if ($LASTEXITCODE -ne 0) { Write-Error "xvlog failed"; Pop-Location; exit 1 }
+$xvlogOut = & $Xvlog $RtlFile $TbFile 2>&1
+$xvlogOut | Write-Host
+if ($LASTEXITCODE -ne 0 -or ($xvlogOut -match 'ERROR:')) { Write-Error "xvlog failed"; Pop-Location; exit 1 }
 
 Write-Host "=== Elaborating ===" -ForegroundColor Cyan
-& $Xelab -debug typical $Top -s $SimName
-if ($LASTEXITCODE -ne 0) { Write-Error "xelab failed"; Pop-Location; exit 1 }
+$xelabOut = & $Xelab -debug typical $Top -s $SimName 2>&1
+$xelabOut | Write-Host
+if ($LASTEXITCODE -ne 0 -or ($xelabOut -match 'ERROR:')) { Write-Error "xelab failed"; Pop-Location; exit 1 }
 
 Write-Host "=== Running simulation ===" -ForegroundColor Cyan
 $out = & $Xsim $SimName --runall 2>&1
