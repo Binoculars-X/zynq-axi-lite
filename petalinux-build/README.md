@@ -20,8 +20,8 @@ Requires `petalinux-v2026.1-06061130-installer.run` in this directory (see below
 
 | File | Size | Where to get it |
 |------|------|-----------------|
-| `petalinux-v2026.1-06061130-installer.run` | ~8 GB | [AMD Downloads](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.html) → PetaLinux 2026.1 |
-| `xilinx-zcu102-v2026.1-06092129.bsp` | ~2 GB | Same page → Board Support Packages → ZCU102 |
+| `petalinux-v2026.1-06061130-installer.run` | ~8 GB | Find on the AMD/Xilinx downloads site (PetaLinux Tools 2026.1) |
+| `xilinx-zcu102-v2026.1-06092129.bsp` | ~2 GB | Same site → Board Support Packages → ZCU102 |
 
 Both are listed under **PetaLinux Tools 2026.1** on the AMD download page.
 An AMD/Xilinx account is required (free).
