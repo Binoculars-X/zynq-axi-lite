@@ -1,21 +1,18 @@
 # build_axi_test.tcl
-# Minimal AXI4-Lite loopback test for ZCU102.
+# AXI4-Lite loopback test for ZCU102: 256 x 32-bit register file with a
+# hardwired PING_CONST at reg0, accessed from Linux userspace via
+# M_AXI_HPM0_LPD (see research-history.md for why LPD instead of FPD).
 #
 # Architecture:
-#   PS M_AXI_HPM0_FPD (ARM @ 0xA0000000)
-#       -> SmartConnect
-#       -> axi_protocol_converter (AXI4 full -> AXI4-Lite)
-#       -> axi_regs256 (256 x 32-bit loopback registers)
+#   PS M_AXI_HPM0_LPD (ARM @ 0x80000000)
+#       -> SmartConnect (handles AXI4->AXI4-Lite conversion internally)
+#       -> axi_regs256 (packaged IP, 256 x 32-bit loopback registers)
 #
-# No ILA, no transformer RTL, no ROMs.
-# Synth ~5 min, impl+bitstream ~15 min.
+# Usage (from repo root):
+#   vivado -mode batch -source scripts/build_axi_test.tcl \
+#       -tclargs <out_dir> <ip_repo> <fpga_part> <board_part>
 #
-# Usage (from neuro-fabric root or repo root):
-#   vivado -mode batch -source C:/repos/_Neuro/axi-test/scripts/build_axi_test.tcl
-#
-# Outputs: C:/repos/_Neuro/axi-test/out/
-#   axi_test.bit   -- program to ZCU102
-#   axi_test.xsa
+# Outputs: <out_dir>/axi_test.bit, <out_dir>/axi_test.xsa
 
 # ── Args from 2.BuildBitstream.ps1 via -tclargs ─────────────────────────────
 set OutDir   [string map {\\ /} [lindex $argv 0]]
@@ -49,10 +46,10 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.5 zynq_ultra_ps_e_
 apply_bd_automation -rule xilinx.com:bd_rule:zynq_ultra_ps_e \
     -config {apply_board_preset "1"} [get_bd_cells zynq_ultra_ps_e_0]
 set_property -dict [list \
-    CONFIG.PSU__USE__M_AXI_GP0                  {1}   \
-    CONFIG.PSU__MAXIGP0__DATA_WIDTH             {32}  \
+    CONFIG.PSU__USE__M_AXI_GP0                  {0}   \
     CONFIG.PSU__USE__M_AXI_GP1                  {0}   \
-    CONFIG.PSU__USE__M_AXI_GP2                  {0}   \
+    CONFIG.PSU__USE__M_AXI_GP2                  {1}   \
+    CONFIG.PSU__MAXIGP2__DATA_WIDTH             {32}  \
     CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ  {100} \
     CONFIG.PSU__FPGA_PL0_ENABLE                 {1}   \
 ] [get_bd_cells zynq_ultra_ps_e_0]
@@ -71,7 +68,7 @@ create_bd_cell -type ip -vlnv xilinx.com:user:axi_regs256:1.0 u_regs
 
 # ── Clocks ────────────────────────────────────────────────────────────────────
 connect_bd_net [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] \
-               [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk]
+               [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk]
 connect_bd_net [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] \
                [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
 connect_bd_net [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0] \
@@ -86,7 +83,7 @@ connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] \
                [get_bd_pins u_regs/s00_axi_aresetn]
 
 # ── AXI connections ───────────────────────────────────────────────────────────
-connect_bd_intf_net [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_FPD] \
+connect_bd_intf_net [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_LPD] \
                     [get_bd_intf_pins axi_smc/S00_AXI]
 connect_bd_intf_net [get_bd_intf_pins axi_smc/M00_AXI] \
                     [get_bd_intf_pins u_regs/S00_AXI]
@@ -94,12 +91,18 @@ connect_bd_intf_net [get_bd_intf_pins axi_smc/M00_AXI] \
 # ── Address assignment ────────────────────────────────────────────────────────
 # Auto-assign (Vivado resolves the actual segment name from component.xml),
 # then force the u_regs segment to 0xA0000000.
+# IMPORTANT: range MUST match the IP's own declared decode width
+# (component.xml address block range), not an arbitrarily larger window --
+# forcing a larger range than the slave declares causes SmartConnect address
+# translation to collapse every write to offset 0 (verified experimentally:
+# vanilla 4-register IP with range forced to 4KB only ever wrote reg0,
+# regardless of target address; every other register silently stayed at 0).
 assign_bd_address
 foreach seg [get_bd_addr_segs -of_objects [get_bd_addr_spaces zynq_ultra_ps_e_0/Data]] {
     if {[string match "*u_regs*" $seg]} {
-        set_property offset 0xA0000000 $seg
-        set_property range  0x00001000 $seg
-        puts "INFO: Mapped $seg -> 0xA0000000 (4KB)"
+        set_property offset 0x80000000 $seg
+        set_property range  0x00000400 $seg
+        puts "INFO: Mapped $seg -> 0x80000000 (1KB, full 256-register axi_regs256 IP)"
     }
 }
 
