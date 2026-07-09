@@ -39,7 +39,7 @@ update_compile_order -fileset sources_1
 set_property top axi_regs256_v1_0_S00_AXI [current_fileset]
 
 ipx::package_project -root_dir $out_dir -vendor user.org -library user -taxonomy /UserIP \
-    -import_files -force -force
+    -import_files -force
 
 set_property name axi_regs256_v1_0 [ipx::current_core]
 set_property display_name "AXI Regs256" [ipx::current_core]

@@ -13,6 +13,43 @@ into **any other Vivado/PetaLinux project** without running the full
 |------|---------|
 | `axi_regs256.sv` | The IP itself. One file, no includes, no external deps. |
 | `package_ip.tcl` | Optional: packages the `.sv` as a reusable Vivado IP-Integrator catalog IP. |
+| `verify/build_bd.tcl` | Self-contained: packages the IP + builds a full ZCU102 block design, synth, impl, bitstream. Used by `verify/test_import.ps1`. |
+| `verify/program_fpga.tcl` | Programs a bitstream to the board via JTAG. Used by `verify/test_import.ps1`. |
+| `verify/test_import.ps1` | One-command consumability test: build → program → devmem test on real hardware. |
+
+## Testing that this artifact is actually consumable
+
+`test_import.ps1` proves this folder is importable standalone (no
+dependency on the parent repo's steps 0–5): it packages `axi_regs256.sv`,
+builds a ZCU102 block design from scratch, synthesizes/implements,
+programs the board over JTAG, and runs the devmem regression suite over SSH.
+
+```powershell
+cd C:\repos\_Neuro\zynq-axi-lite\ip-export\verify
+.\test_import.ps1
+```
+
+All configuration (Vivado path, board IP, JTAG URL, part numbers, and
+skip-stage flags) lives in the `SETTINGS` block at the top of
+`verify/test_import.ps1` — edit it for your machine/board before running.
+There are no command-line parameters.
+
+Confirmed passing on ZCU102 (Vivado 2026.1):
+
+```
+=== Step 3/3: devmem tests on petalinux@192.168.0.93 ===
+  PASS  reg0   0x80000000 [read] : 0xA0100001
+  PASS  reg1   0x80000004 [write/read] : 0xDEADBEEF
+  PASS  byteen 0x80000008 [byte-write/read] : 0xFFFFFFAB
+  PASS  reg254 0x800003f8 [write/read] : 0xDEADBEEF
+  PASS  reg255 0x800003fc [write/read] : 0xCAFEBABE
+
+=== ALL TESTS PASSED ===
+```
+
+This proves `ip-export/` is genuinely importable standalone — packaged,
+built, programmed, and verified on real hardware without touching the
+parent repo's steps 0–5.
 
 ## What it is
 

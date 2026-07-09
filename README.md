@@ -8,7 +8,8 @@ ETH / USDT / USDC (ERC-20): **`0x82Bc45B772842457C21d8fF8517DE91F74470Ec9`**
 > **Just want the IP, not the whole build pipeline?** See
 > [`ip-export/README.md`](ip-export/README.md) for a standalone,
 > hardware-verified `axi_regs256.sv` you can drop into any project without
-> running steps 0–5.
+> running steps 0–5 — includes a one-command `verify/test_import.ps1`
+> script that builds, programs, and devmem-tests it on real hardware.
 
 ## Goal
 
